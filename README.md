@@ -2,6 +2,10 @@
 
 In this repo you'll find my Technical Challenge project for WorkOS, which demonstrates WorkOS' SSO and Directory Sync features.
 
+Before we begin, here's a video of my app in action on my machine:
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/2b2342ba60824b0f8300bfe128bbffe3" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+
 These instructions will walk you through downloading my app and running it locally.
 
 ## Clone the repo
