@@ -59,7 +59,7 @@ Once you've set up Directory Sync in both WorkOS and Okta, you'll need to ensure
 
 **NOTE:** If there's an option to do this, make sure that each attribute's Value type is set to **Expression**, not the default **Basic**.
 
-5. Click **Save**.
+4. Click **Save**.
 
 **In WorkOS:**
 
