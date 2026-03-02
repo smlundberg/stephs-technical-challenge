@@ -4,7 +4,11 @@ In this repo you'll find my Technical Challenge project for WorkOS, which demons
 
 Before we begin, here's a video of my app in action on my machine:
 
-<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.loom.com/embed/2b2342ba60824b0f8300bfe128bbffe3" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+<p align="center">
+<video src="https://github.com/user-attachments/assets/5865bb0c-d87e-4713-a9b7-b5ada3753319" width="80%" controls></video>
+</p>
+
+Here's a [Loom video](https://www.loom.com/share/2b2342ba60824b0f8300bfe128bbffe3) with sound if you'd prefer a narrated version of my app in action.
 
 These instructions will walk you through downloading my app and running it locally.
 
