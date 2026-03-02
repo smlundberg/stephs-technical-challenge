@@ -1,150 +1,171 @@
-# python-django-sso-example
+# Welcome to Steph's Technical Challenge App!
 
-An example Django application demonstrating how to use the [WorkOS Python SDK](https://github.com/workos/workos-python) to authenticate users via SSO.
+In this repo you'll find my Technical Challenge project for WorkOS, which demonstrates WorkOS' SSO and Directory Sync features.
 
-## Prerequisites
+These instructions will walk you through downloading my app and running it locally.
 
-- Python 3.6+
+## Clone the repo
 
-## Django Project Setup
+First, you'll want to either fork or clone my repo. You can fork using [these instructions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) or clone using [these instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository#cloning-a-repository).
 
-1. Clone the main git repo for these Python example apps using your preferred secure method (HTTPS or SSH).
+## Create a WorkOS account
 
-   ```bash
-   # HTTPS
-   $ git clone https://github.com/workos/python-django-example-applications.git
-   ```
+Before you start working with the app, you'll need to create a few accounts, starting with a free WorkOS account.
 
-   or
+1. Go to workos.com.
+2. Click the **Get Started** button and follow the prompts to create your account.
+3. Click on **Organizations** in the left sidebar, then the **Create organization** button.
+4. Fill out the information, then click **Create organization** when you're done.
+5. In your new organization page, find the Organization ID under your org name and copy it (should be in the format `org_...`). You'll need this later for `.env` file in the app.
 
-   ```bash
-   # SSH
-   $ git clone git@github.com:workos/python-django-example-applications.git
-   ```
+## Set up SSO in WorkOS
 
-2. Navigate to the Admin Portal example app within the cloned repo.
+1. Follow [these instructions](https://workos.com/docs/sso) to create an SSO connection for your new organization.
+2. Click on **Overview** to go to your WorkOS dashboard, then under **Copy environment variables**, copy your:
+   1.  `WORKOS_CLIENT_ID` (should be in the format `client_...`), and
+   2.  `WORKOS_API_KEY` (should be in the format `sk_test_...`).
+       1. You'll need these later for `.env` file in the app.
+3. Lastly, click on **Redirects** in the left side bar and add `http://localhost:8000/auth/callback` as an allowed **Redirect URI**. This is the default callback URI that the app uses.
 
-   ```bash
-   $ cd python-django-example-applications/python-django-sso-example
-   ```
+I recommend keeping your WorkOS organization page open in your browser, as it has information you'll need to set up your Okta account later.
 
-3. Create and source a Python virtual environment. You should then see `(env)` at the beginning of your command-line prompt.
+## Create an Okta account & set up SAML 2.0 app
 
-   ```bash
-   $ python3 -m venv env
-   $ source env/bin/activate
-   (env) $
-   ```
+1. This app uses Okta as its IdP, so the next step is to create an [Okta Integrator Free account](https://developer.okta.com/signup/).
+2. Follow [these instructions](https://workos.com/docs/integrations/okta-saml) to create an Okta SAML 2.0 app.
+   1. When you're asked for the **Single sign on URL** and **Audience URI (SP Entity ID)**, go back to your WorkOS organization's Connection page, copy the ACS URL, and paste into the Single sign-on field in Okta. Repeat for the Audience URI (SP Entity ID) field in Okta.
+   2. Follow the instructions above to connect your Okta SAML 2.0 app to WorkOS.
 
-4. Install the cloned app's dependencies. If the `pip` command doesn't work, try `pip3` instead.
+## Set up Directory Sync (SCIM) in WorkOS and Okta
 
-   ```bash
-   (env) $ pip install -r requirements.txt
-   ```
+My app is also set up to automatically provision users in my organization via Okta SCIM, so you'll need to set up Directory Sync in WorkOS and create a SCIM application in Okta.
 
-5. Obtain and make note of the following values. In the next step, these will be set as environment variables.
+Rather than go into detail here, I recommend using [WorkOS's doc for setting up Okta SCIM](https://workos.com/docs/integrations/okta-scim), as it offers detailed, step by step instructions for setting up and configuring Directory Sync for your organization.
 
-   - Your [WorkOS API key](https://dashboard.workos.com/api-keys)
-   - Your [SSO-specific, WorkOS Client ID](https://dashboard.workos.com/sso/configuration)
-   - The redirect URI. For this example, we'll use http://localhost:8000/auth/callback
+### Map data in WorkOS and Okta
 
-6. Ensure you're in the root directory for the example app, `python-django-sso-example/`. Create a `.env` file to securely store the environment variables. Open this file with the Nano text editor. (This file is listed in this repo's `.gitignore` file, so your sensitive information will not be checked into version control.)
+Once you've set up Directory Sync in both WorkOS and Okta, you'll need to ensure data is mapped correctly in WorkOS and Okta.
 
-   ```bash
-   (env) $ touch .env
-   (env) $ nano .env
-   ```
+**In Okta:**
+1. Go to **Admin Console > Application > Applications > Your SAML app > Sign On tab > Settings section** and click **Edit**.
+2. Scroll down to the **Attribute statements** section, click the **Show legacy configuration** dropdown menu.
+3. In the **Profile attribute statements** section, click **Edit** and add these attribute statements:
 
-7. Once the Nano text editor opens, you can directly edit the `.env` file by listing the environment variables:
+| Name      | Name format | Value          |
+| --------- | ----------- | -------------- |
+| email     | Unspecified | user.login     |
+| firstName | Unspecified | user.firstName |
+| lastName  | Unspecified | user.lastName  |
 
-   ```bash
-   export WORKOS_API_KEY=<value found in step 6>
-   export WORKOS_CLIENT_ID=<value found in step 6>
-   export REDIRECT_URI='http://localhost:8000/auth/callback'
-   ```
+**NOTE:** If there's an option to do this, make sure that each attribute's Value type is set to **Expression**, not the default **Basic**.
 
-   To exit the Nano text editor, type `CTRL + x`. When prompted to "Save modified buffer", type `Y`, then press the `Enter` or `Return` key.
+5. Click **Save**.
 
-8. Source the environment variables so they are accessible to the operating system.
+**In WorkOS:**
 
-   ```bash
-   (env) $ source .env
-   ```
+1. Go to **Organizations > your organization**.
+2. In the **Single Sign-On** section, click **View connection**.
+3. Scroll down to the **Attribute mapping** section and click **Edit attribute mapping**.
+4. Map the attributes as follows:
 
-   You can ensure the environment variables were set correctly by running the following commands. The output should match the corresponding values.
+| Attribute name | IdP field name |
+| -------------- | -------------- |
+| email          | userName       |
+| firstName      | firstName      |
+| idpid          | NameID         |
+| lastName       | lastName       |
+| username       | userName       |
 
-   ```bash
-   (env) $ echo $WORKOS_API_KEY
-   (env) $ echo $WORKOS_CLIENT_ID
-   (env) $ echo $REDIRECT_URI
-   ```
+5. Click **Save changes**.
 
-9. Run the Django migrations. Again, ensure you're in the `python-django-sso-example/` directory where the `manange.py` file is.
+## Configure the app
 
-   ```bash
-   (env) $ python3 manage.py migrate
-   ```
+Now that you've set up your WorkOS organization and Okta SAML 2.0 and SCIM apps, it's time to add the IDs and keys you saved earlier as environment variables in the `.env` file so that the app can retrieve and display your information.
 
-   You should see output like:
+1. Open the project in your code editor of choice.
+2. Copy `.env.example` to a new file named `.env`.
+3. Replace the dummy values in the file with your values.
 
-   ```bash
-   Operations to perform:
-   Apply all migrations: admin, auth, contenttypes, sessions
-   Running migrations:
-   Applying contenttypes.0001_initial... OK
-   Applying auth.0001_initial... OK
-   . . .
-   ```
-
-10. In `python-django-sso-example/sso/views.py` change the `ORGANIZATION_ID` string value to the organization ID that you are targeting. This can be found in the WorkOS Dashboard under the Organization Settings.
-
-11. The final setup step is to start the server.
-
-```bash
-(env) $ python3 manage.py runserver --insecure
+```
+DJANGO_SECRET_KEY=<generate a secret key — see tip below>
+WORKOS_CLIENT_ID=<your WorkOS client ID>
+WORKOS_API_KEY=<your WorkOS API key>
+DEBUG=False
+REDIRECT_URI=http://localhost:8000/auth/callback
+CUSTOMER_ORGANIZATION_ID=<your WorkOS organization ID>
 ```
 
-You'll know the server is running when you see no warnings or errors in the CLI, and output similar to the following is displayed:
+You'll notice that there's a variable for DJANGO_SECRET_KEY. Rather than expose this in the code files, I elected to pass this as a secret in the `.env` file.
+
+Here's how to generate a Django secret key in your terminal:
 
 ```bash
-Watching for file changes with StatReloader
-Performing system checks...
-
-System check identified no issues (0 silenced).
-March 18, 2021 - 04:54:50
-Django version 3.1.7, using settings 'workos_django.settings'
-Starting development server at http://127.0.0.1:8000/
-Quit the server with CONTROL-C.
+python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
+Add the Django secret key in the `.env` file, and be sure to save your changes.
 
-Navigate to `localhost:8000` in your web browser. You should see a "Login" link. If you click this link, you'll be redirected to an HTTP `404` page because we haven't set up SSO yet!
+## Run the app locally
 
-You can stop the local Django server for now by entering `CTRL + c` on the command line.
+Now we're ready to run the app!
 
-## SSO Setup with WorkOS
+First, open a terminal and navigate into the app directory:
 
-Follow the [SSO authentication flow instructions](https://workos.com/docs/sso/guide/introduction) to set up an SSO connection.
+`cd <path-to-repo>/python-django-sso-example`
 
-When you get to the step where you provide the `REDIRECT_URI` value, use http://localhost:8000/auth/callback.
+Next, create and activate a virtual environment:
 
-If you get stuck, please reach out to us at support@workos.com so we can help.
+`python3 -m venv venv`
 
-## Testing the Integration
+`source venv/bin/activate`
 
-12. Naviagte to the `python-django-sso-example` directory, which contains the `manage.py` file. Source the virtual environment we created earlier, if it isn't still activated from the steps above. Start the Django server locally.
+Install the dependencies needed to run the app:
 
-```bash
-$ cd ~/Desktop/python-django-sso-example/
-$ source env/bin/activate
-(env) $ python3 manage.py runserver
-```
+`pip install -r requirements.txt`
 
-Once running, navigate to http://localhost:8000 to test out the SSO workflow.
+(Try `pip3` if `pip` doesn't work.)
 
-Hooray!
+Set up the app database and collect static files:
 
-## Need help?
+`python3 manage.py migrate`
 
-When you clone this repo, the `DEBUG` setting is `False` by default in `workos_django/settings.py`. You can set `DEBUG=True` if you need to troubleshoot something during the tutorial, but you must use `DEBUG=False` in order to successfully connect to the WorkOS API.
+`python3 manage.py collectstatic`
 
-If you get stuck and aren't able to resolve the issue by reading our API reference or tutorials, you can reach out to us at support@workos.com and we'll lend a hand.
+Because we're serving up static files, we have to add `--insecure` when we're starting the server:
+
+`python3 manage.py runserver --insecure`
+
+We're ready to run the app!
+
+Go to `http://localhost:8000` in your browser and click **Enterprise SAML** to log in.
+
+You'll be directed to log into Okta first, and then you'll see the logged-in page where you should see your first and last name, your SSO details, and your Okta Directory, where you can click in to see your Users and Groups.
+
+## Common errors & how to fix them
+
+`Error: Unable to extract valid email address from profile.`
+
+This means that either Okta isn't sending a valid email address in their SSO response or WorkOS isn't mapping that attribute correctly (or both).
+
+To fix this, go to back to the **Map Data in WorkOS and Okta** step and make sure 1) you've added the attribute statements in Okta and 2) you've mapped the attributes in WorkOS.
+
+`Error: The SAML Response did not contain expected attributes.`
+
+Basically the same cause as the error above. To fix this, go to back to the **Map Data in WorkOS and Okta** step and make sure 1) you've added the attribute statements in Okta and 2) you've mapped the attributes in WorkOS.
+
+`Error: Profile does not belong to the target Organization. The domain 'yourdomain.com' does not match any of the Organization's domains.`
+
+This means that you haven't set a domain in WorkOS. To fix this:
+
+1. Go to **WorkOS Dashboard > Organizations > your organization**.
+2. Find the **Domains** section.
+3. Add your email domain as a domain (everything after the @ in example@yourdomain.com).
+4. Save your changes.
+
+`App UI is broken / Images are broken`
+
+This means that the static files with UI elements aren't being served.
+
+To fix this:
+
+1. Exit the server and run `python3 manage.py collectstatic`, or if you've done that,
+2. Make sure you've included `--insecure` in your `runserver` command: `python3 manage.py runserver --insecure`.
