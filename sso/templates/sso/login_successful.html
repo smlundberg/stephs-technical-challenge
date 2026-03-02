@@ -1,0 +1,105 @@
+{% load static %}
+<html>
+  <head>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+  </head>
+
+  <body class="container_success">
+    <div class="logged_in_nav">
+      <div class="flex">
+        <div>
+          <img
+            src="{% static 'images/workos-logo-with-text.png' %}"
+            alt="workos logo"
+          />
+        </div>
+      </div>
+      <div class="flex">
+        <a href="https://workos.com/docs" target="_blank"
+          ><button class="button nav-item">Documentation</button></a
+        >
+        <a href="https://workos.com/docs/reference" target="_blank"
+          ><button class="button nav-item">API Reference</button></a
+        >
+        <a href="https://workos.com/blog" target="_blank"
+          ><button class="button nav-item blog-nav-button">Blog</button></a
+        >
+        <a href="https://workos.com/" target="_blank"
+          ><button class="button button-outline">WorkOS</button></a
+        >
+      </div>
+    </div>
+
+    <div style="max-width: 960px; margin: 30px auto; padding: 0 20px;">
+      <div>
+        <div class="flex_column" style="align-items: flex-start;">
+          <div class="flex width-941px space-between">
+            <div>
+              <p>Welcome, {{first_name}} {{last_name}}!</p>
+              <p>SSO Profile Details</p>
+            </div>
+            <div>
+              <a href="/logout"
+                ><button class="button button-outline">Log Out</button></a
+              >
+            </div>
+          </div>
+          <div>
+            <pre id="noborder" class="prettyprint noborder">
+                        {{raw_profile}}
+                    </pre
+            >
+          </div>
+
+          <hr style="width: 100%; margin-top: 30px; margin-bottom: 20px" />
+
+          <div>
+            <p>Directory Sync</p>
+          </div>
+
+          {% if dir_error %}
+          <div style="color: red; padding: 10px 0;">
+            <strong>Directory Sync error:</strong> {{ dir_error }}
+          </div>
+          {% elif directories %}
+          <table class="width-941px">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 8px;">Name</th>
+                <th style="text-align: left; padding: 8px;">ID</th>
+                <th style="text-align: left; padding: 8px;">Type</th>
+                <th style="text-align: left; padding: 8px;">Users</th>
+                <th style="text-align: left; padding: 8px;">Groups</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dir in directories %}
+              <tr>
+                <td style="padding: 8px;">{{ dir.name }}</td>
+                <td style="padding: 8px;"><code>{{ dir.id }}</code></td>
+                <td style="padding: 8px;">{{ dir.type }}</td>
+                <td style="padding: 8px;">
+                  <a href="/users?id={{ dir.id }}"
+                    ><button class="button button-sm">Users</button></a
+                  >
+                </td>
+                <td style="padding: 8px;">
+                  <a href="/groups?id={{ dir.id }}"
+                    ><button class="button button-sm">Groups</button></a
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="card" style="padding: 16px;">
+            <code>No directories found.</code>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  </body>
+</html>
